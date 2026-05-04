@@ -106,7 +106,15 @@ jobs:
           file -E ~/.local/lib/cmake/boost_system-*/boost_system-config.cmake
           file -E ~/.local/lib/cmake/boost_system-*/boost_system-config-version.cmake
 
-  b2-check-cmake-use-posix:
+  b2-cmake-tool-posix:
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - boostdep
+          - inspect
+          - quickbook
+
     runs-on: ubuntu-latest
 
     steps:
@@ -117,14 +125,22 @@ jobs:
       - name: Install Boost
         run: |
           ./bootstrap.sh
-          ./b2 -j3 --prefix=$HOME/.local install
+          ./b2 -j3 --prefix=$HOME/.local --with-filesystem --with-regex --with-program_options install
 
-      - name: Build Quickbook with CMake
+      - name: Build tool with CMake
         run: |
-          cmake -S tools/quickbook -B __build__ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/.local
+          cmake -S tools/${{matrix.tool}} -B __build__ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/.local
           cmake --build __build__ --target install
 
-  b2-check-cmake-use-windows:
+  b2-cmake-tool-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - boostdep
+          - inspect
+          - quickbook
+
     runs-on: windows-latest
 
     steps:
@@ -136,11 +152,11 @@ jobs:
         shell: cmd
         run: |
           cmd /c bootstrap
-          b2 -j3 install
+          b2 -j3 --with-filesystem --with-regex --with-program_options install
 
-      - name: Build Quickbook with CMake
+      - name: Build tool with CMake
         run: |
-          cmake -S tools/quickbook -B __build__ -DBoost_ROOT=C:/Boost -DCMAKE_INSTALL_PREFIX=C:/usr/local
+          cmake -S tools/${{matrix.tool}} -B __build__ -DBoost_ROOT=C:/Boost -DCMAKE_INSTALL_PREFIX=C:/usr/local
           cmake --build __build__ --target install --config Release
 
   b2-cmake-use-lib-posix:
@@ -157,7 +173,7 @@ jobs:
           - program_options
           - python
           - random
-          #- regex
+          - regex
           - serialization
           - system
           - test
